@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $dest_path = $uploadFileDir . $newFileName;
 
             if (move_uploaded_file($fileTmpPath, $dest_path)) {
-                $imagen = '/assets/images/productos/' . $newFileName;
+                $imagen = './assets/images/productos/' . $newFileName;
             } else {
                 $error = "Hubo un error al mover el archivo al directorio de destino.";
             }
