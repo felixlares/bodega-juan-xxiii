@@ -25,7 +25,7 @@ try {
 // Valores SEO por defecto
 $og_title = $og_title ?? $configuracion['nombre_tienda'];
 $og_description = $og_description ?? "La mejor tienda de ropa, accesorios, hogar, ferretería y víveres.";
-$og_image = $og_image ?? (isset($_SERVER['HTTPS']) ? "https://" : "http://") . $_SERVER['HTTP_HOST'] . "/assets/images/logo.png";
+$og_image = $og_image ?? (isset($_SERVER['HTTPS']) ? "https://" : "http://") . $_SERVER['HTTP_HOST'] . "/assets/images/logo.svg";
 $og_url = $og_url ?? ((isset($_SERVER['HTTPS']) ? "https://" : "http://") . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
 $og_type = $og_type ?? "website";
 ?>
@@ -41,6 +41,9 @@ $og_type = $og_type ?? "website";
 
     <!-- Meta Tags Básicos -->
     <meta name="description" content="<?php echo htmlspecialchars($og_description); ?>">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/assets/images/logo.svg">
 
     <!-- Open Graph SEO -->
     <meta property="og:type" content="<?php echo htmlspecialchars($og_type); ?>">
