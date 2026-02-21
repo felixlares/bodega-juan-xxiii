@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 try {
     $pdo->exec("USE `$dbname`");
@@ -41,7 +42,7 @@ $og_type = $og_type ?? "website";
 
     <!-- Meta Tags Básicos -->
     <meta name="description" content="<?php echo htmlspecialchars($og_description); ?>">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/assets/images/logo.svg">
 
@@ -61,7 +62,7 @@ $og_type = $og_type ?? "website";
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/style.css?v=<?php echo APP_VERSION; ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -122,8 +123,12 @@ $og_type = $og_type ?? "website";
                 <span>Total:</span>
                 <span id="cartTotalPrice">$0.00</span>
             </div>
-            <button class="btn btn-whatsapp" id="checkoutBtn"><i class="fab fa-whatsapp"></i> Pedir por
-                WhatsApp</button>
+            <button class="btn btn-whatsapp" id="checkoutBtn">
+                <i class="fab fa-whatsapp"></i> Pedir por WhatsApp
+            </button>
+            <button class="btn btn-outline-danger" id="clearCartBtn"
+                style="margin-top: 30px; border-color: #dc3545; color: #dc3545; background-color: transparent; width: 100%;"><i
+                    class="fas fa-trash-alt"></i> Vaciar Carrito</button>
         </div>
     </div>
     <div class="cart-overlay" id="cartOverlay"></div>

@@ -53,8 +53,8 @@
         nombre: "<?php echo htmlspecialchars($configuracion['nombre_tienda'], ENT_QUOTES); ?>"
     };
 </script>
-<script src="/assets/js/main.js"></script>
-<script src="/assets/js/cart.js"></script>
+<script src="/assets/js/main.js?v=<?php echo APP_VERSION; ?>"></script>
+<script src="/assets/js/cart.js?v=<?php echo APP_VERSION; ?>"></script>
 </body>
 
 </html>

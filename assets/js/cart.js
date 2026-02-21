@@ -25,12 +25,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Global func para llamar desde PHP/HTML
     window.addToCart = function (producto) {
-        const existingItem = cart.find(item => item.id === producto.id);
+        const existingItem = cart.find(item => String(item.id) === String(producto.id));
         if (existingItem) {
             existingItem.cantidad += (producto.cantidad || 1);
         } else {
             cart.push({
-                id: producto.id,
+                id: String(producto.id),
                 titulo: producto.titulo,
                 precio: parseFloat(producto.precio),
                 imagen: producto.imagen || '/assets/images/placeholder.jpg',
@@ -45,12 +45,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.removeFromCart = function (id) {
-        cart = cart.filter(item => item.id !== id);
+        cart = cart.filter(item => String(item.id) !== String(id));
+        saveCart();
+    }
+
+    window.clearCart = function () {
+        cart = [];
         saveCart();
     }
 
     window.updateQuantity = function (id, change) {
-        const item = cart.find(item => item.id === id);
+        const item = cart.find(item => String(item.id) === String(id));
         if (item) {
             item.cantidad += change;
             if (item.cantidad <= 0) {
@@ -89,11 +94,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="cart-item-price">$${item.precio.toFixed(2)} c/u</div>
                         <div class="cart-item-controls">
                             <div class="qty-btn-group">
-                                <button class="qty-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
+                                <button class="qty-btn" onclick="updateQuantity('${item.id}', -1)">-</button>
                                 <input type="text" class="qty-input" value="${item.cantidad}" readonly>
-                                <button class="qty-btn" onclick="updateQuantity(${item.id}, 1)">+</button>
+                                <button class="qty-btn" onclick="updateQuantity('${item.id}', 1)">+</button>
                             </div>
-                            <button class="remove-item" onclick="removeFromCart(${item.id})"><i class="fas fa-trash"></i></button>
+                            <button class="remove-item" onclick="removeFromCart('${item.id}')"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 </div>
@@ -132,6 +137,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeCartBtn) closeCartBtn.addEventListener('click', toggleCart);
     if (cartOverlay) cartOverlay.addEventListener('click', toggleCart);
     if (checkoutBtn) checkoutBtn.addEventListener('click', actWhatsApp);
+
+    // Evento delegación para el botón de vaciar carrito
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('#clearCartBtn')) {
+            if (confirm('¿Estás seguro de que quieres vaciar todo el carrito?')) {
+                clearCart();
+            }
+        }
+    });
 
     // Bootstrap
     updateCartUI();
