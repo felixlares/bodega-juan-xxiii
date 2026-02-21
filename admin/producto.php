@@ -40,6 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Error de seguridad (CSRF). Por favor recargue la página.");
     }
 
+    // Basic CSRF check could be added here later
+
     function generarSlug($text)
     {
         // Reemplazar caracteres especiales y acentos
@@ -53,7 +55,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         return $text;
     }
 
-    // Basic CSRF check could be added here later
+    /**
+     * Redimensiona y comprime una imagen usando GD
+     */
+    function optimizarImagen($sourcePath, $destPath, $maxWidth = 1200, $quality = 80)
+    {
+        list($width, $height, $type) = getimagesize($sourcePath);
+
+        // Calcular nuevas dimensiones manteniendo proporción
+        $newWidth = $width;
+        $newHeight = $height;
+
+        if ($width > $maxWidth) {
+            $newWidth = $maxWidth;
+            $newHeight = floor($height * ($maxWidth / $width));
+        }
+
+        // Crear recurso de imagen según el tipo
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                $source = imagecreatefromjpeg($sourcePath);
+                break;
+            case IMAGETYPE_PNG:
+                $source = imagecreatefrompng($sourcePath);
+                // Preservar transparencia
+                imagealphablending($source, true);
+                imagesavealpha($source, true);
+                break;
+            case IMAGETYPE_WEBP:
+                $source = imagecreatefromwebp($sourcePath);
+                break;
+            default:
+                return false;
+        }
+
+        // Crear imagen de destino
+        $dest = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Manejar transparencia para el destino (especialmente PNG/WEBP)
+        if ($type == IMAGETYPE_PNG || $type == IMAGETYPE_WEBP) {
+            imagealphablending($dest, false);
+            imagesavealpha($dest, true);
+            $transparent = imagecolorallocatealpha($dest, 255, 255, 255, 127);
+            imagefilledrectangle($dest, 0, 0, $newWidth, $newHeight, $transparent);
+        }
+
+        // Redimensionar
+        imagecopyresampled($dest, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        // Guardar comprimida
+        $result = false;
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                $result = imagejpeg($dest, $destPath, $quality);
+                break;
+            case IMAGETYPE_PNG:
+                // PNG quality en GD es 0-9 (compresión), no 0-100
+                $pngQuality = floor((100 - $quality) / 10);
+                $result = imagepng($dest, $destPath, $pngQuality);
+                break;
+            case IMAGETYPE_WEBP:
+                $result = imagewebp($dest, $destPath, $quality);
+                break;
+        }
+
+        // Liberar memoria
+        imagedestroy($source);
+        imagedestroy($dest);
+
+        return $result;
+    }
 
     $titulo = trim($_POST['titulo'] ?? '');
     $slug = trim($_POST['slug'] ?? generarSlug($titulo));
@@ -86,10 +157,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $newFileName = $slug . '-p.' . $fileExtension;
             $dest_path = $uploadFileDir . $newFileName;
 
-            if (move_uploaded_file($fileTmpPath, $dest_path)) {
+            // Optimizar antes de guardar definitivamente
+            if (optimizarImagen($fileTmpPath, $dest_path)) {
                 $imagen = './assets/images/productos/' . $newFileName;
             } else {
-                $error = "Hubo un error al mover el archivo al directorio de destino.";
+                // Si la optimización falla (ej. formato no soportado), intentar mover directo
+                if (move_uploaded_file($fileTmpPath, $dest_path)) {
+                    $imagen = './assets/images/productos/' . $newFileName;
+                } else {
+                    $error = "Hubo un error al procesar o guardar la imagen.";
+                }
             }
         } else {
             $error = "Extensión de archivo no permitida. Solo JPG, PNG, GIF y WEBP.";
@@ -453,7 +530,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div>
                     <label style="font-size: 0.85rem; color: #6c757d;">O ingresar URL de imagen actual</label>
                     <input type="text" name="imagen_principal" class="form-control"
-                        placeholder="/assets/images/productos/tu-imagen.jpg"
+                        placeholder="./assets/images/productos/tu-imagen.jpg"
                         value="<?php echo htmlspecialchars($producto['imagen_principal']); ?>"
                         style="background: white;">
                 </div>
@@ -461,7 +538,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php if ($producto['imagen_principal']): ?>
                     <div
                         style="margin-top: 1rem; border-top: 1px solid #dee2e6; padding-top: 1rem; display: flex; align-items: center; gap: 1rem;">
-                        <img src="<?php echo htmlspecialchars($producto['imagen_principal']); ?>" alt="Vista previa"
+                        <img src="<?php echo htmlspecialchars('../' . $producto['imagen_principal']); ?>" alt="Vista previa"
                             style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">
                         <span style="font-size: 0.8rem; color: #6c757d;">Imagen actual</span>
                     </div>
