@@ -67,6 +67,7 @@ $og_type = $og_type ?? "website";
     <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="logo">
+                <i class="fas fa-wine-bottle" style="color: var(--primary-color); margin-right: 5px;"></i>
                 <?php echo htmlspecialchars($configuracion['nombre_tienda']); ?>
             </a>
 

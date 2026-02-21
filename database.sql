@@ -47,3 +47,16 @@ SELECT
     '24 horas',
     '{"facebook": "", "instagram": "", "tiktok": ""}'
 WHERE NOT EXISTS (SELECT 1 FROM configuracion);
+
+CREATE TABLE IF NOT EXISTS usuarios_admin (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insertar usuario admin por defecto: password "bodega123" encriptado con BCRYPT
+INSERT INTO usuarios_admin (username, password_hash)
+SELECT 'admin', '$2y$10$Kkjx6aHensnQETPGa9wYg.DeG92ISykHrAQa29rbDuYkD9987lEUS'
+WHERE NOT EXISTS (SELECT 1 FROM usuarios_admin WHERE username = 'admin');
+

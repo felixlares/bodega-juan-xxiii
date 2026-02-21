@@ -15,6 +15,11 @@ try {
     $productos = [];
 }
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf_token = $_SESSION['csrf_token'];
+
 if (isset($_GET['logout'])) {
     session_destroy();
     header('Location: login.php');
@@ -151,12 +156,19 @@ if (isset($_GET['logout'])) {
 <body>
     <div class="header">
         <h2>Bodega Juan XXIII - Admin</h2>
-        <a href="?logout=1">Cerrar Sesión</a>
+        <div>
+            <a href="index.php" style="background: transparent; border: 1px solid white;">Productos</a>
+            <a href="configuracion.php"
+                style="background: transparent; border: 1px solid white; margin-left: 0.5rem;">Configuración</a>
+            <a href="cambiar_password.php"
+                style="background: transparent; border: 1px solid white; margin-left: 0.5rem;">Cambiar Contraseña</a>
+            <a href="?logout=1" style="margin-left: 1rem;">Cerrar Sesión</a>
+        </div>
     </div>
     <div class="container">
         <div class="toolbar">
             <h3>Productos</h3>
-            <a href="#" class="btn btn-primary">+ Añadir Producto</a>
+            <a href="producto.php" class="btn btn-primary">+ Añadir Producto</a>
         </div>
 
         <?php if (isset($error)): ?>
@@ -208,8 +220,11 @@ if (isset($_GET['logout'])) {
                             <?php endif; ?>
                         </td>
                         <td>
-                            <a href="#"
+                            <a href="producto.php?id=<?php echo $p['id']; ?>"
                                 style="color: #0d6efd; text-decoration: none; font-size: 0.9rem; margin-right: 0.5rem;">Editar</a>
+                            <a href="eliminar_producto.php?id=<?php echo $p['id']; ?>&csrf_token=<?php echo $csrf_token; ?>"
+                                style="color: #dc3545; text-decoration: none; font-size: 0.9rem;"
+                                onclick="return confirm('¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.');">Borrar</a>
                         </td>
                     </tr>
                 <?php endforeach; ?>

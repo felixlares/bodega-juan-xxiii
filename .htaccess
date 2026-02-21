@@ -1,0 +1,22 @@
+# ----------------------------------------------------------------------
+# Seguridad Básica - Bodega Juan XXIII
+# ----------------------------------------------------------------------
+
+# 1. Deshabilitar el listado de directorios (evita que vean los archivos en /assets, /images, etc)
+Options -Indexes
+
+# 2. Bloquear acceso a archivos sensibles y de configuración
+<FilesMatch "(\.env|\.sql|\.ini|\.log|\.git|database\.sql)$">
+    Require all denied
+</FilesMatch>
+
+# 3. Bloquear acceso directo a la carpeta de includes (Donde está db.php)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^includes/(.*)$ - [F,L]
+</IfModule>
+
+# 4. Proteger el propio archivo .htaccess
+<Files ".htaccess">
+    Require all denied
+</Files>

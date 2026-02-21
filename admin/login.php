@@ -5,18 +5,34 @@ if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true
     exit;
 }
 
+require_once '../includes/db.php';
+
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
+    // Autenticación con Base de Datos
+    if (!empty($username) && !empty($password)) {
+        try {
+            $pdo->exec("USE `$dbname`");
+            $stmt = $pdo->prepare("SELECT id, username, password_hash FROM usuarios_admin WHERE username = ?");
+            $stmt->execute([$username]);
+            $user = $stmt->fetch();
 
-    // Autenticación básica (Usuario: admin, Clave: bodega123)
-    if ($username === 'admin' && $password === 'bodega123') {
-        $_SESSION['admin_logged_in'] = true;
-        header('Location: index.php');
-        exit;
+            if ($user && password_verify($password, $user['password_hash'])) {
+                $_SESSION['admin_logged_in'] = true;
+                $_SESSION['admin_user_id'] = $user['id'];
+                $_SESSION['admin_username'] = $user['username'];
+                header('Location: index.php');
+                exit;
+            } else {
+                $error = 'Credenciales inválidas.';
+            }
+        } catch (PDOException $e) {
+            $error = 'Error de conexión a la base de datos.';
+        }
     } else {
-        $error = 'Credenciales inválidas.';
+        $error = 'Por favor ingresa usuario y contraseña.';
     }
 }
 ?>

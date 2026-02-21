@@ -4,6 +4,7 @@
     <div class="footer-container">
         <div class="footer-col" style="grid-column: span 2;">
             <h4>
+                <i class="fas fa-wine-bottle" style="margin-right: 5px;"></i>
                 <?php echo htmlspecialchars($configuracion['nombre_tienda']); ?>
             </h4>
             <p><i class="fas fa-map-marker-alt" style="width: 20px;"></i>
@@ -33,7 +34,7 @@
             <a href="/">Inicio</a>
             <a href="/productos.php">Todos los Productos</a>
             <a href="/contacto.php">Contáctanos</a>
-            <a href="/admin/login.php" style="margin-top: 1rem; color: #6c757d; font-size: 0.8rem;">Acceso
+            <a href="" style="margin-top: 1rem; color: #6c757d; font-size: 0.8rem;">Acceso
                 Administrativo</a>
         </div>
     </div>
