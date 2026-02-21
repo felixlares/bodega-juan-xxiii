@@ -66,6 +66,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $sku = trim($_POST['sku'] ?? '');
     $activo = isset($_POST['activo']) ? 1 : 0;
 
+    // Procesar carga de imagen
+    if (isset($_FILES['imagen_archivo']) && $_FILES['imagen_archivo']['error'] === UPLOAD_ERR_OK) {
+        $fileTmpPath = $_FILES['imagen_archivo']['tmp_name'];
+        $fileName = $_FILES['imagen_archivo']['name'];
+        $fileSize = $_FILES['imagen_archivo']['size'];
+        $fileType = $_FILES['imagen_archivo']['type'];
+        $fileNameCmps = explode(".", $fileName);
+        $fileExtension = strtolower(end($fileNameCmps));
+
+        $allowedfileExtensions = array('jpg', 'gif', 'png', 'jpeg', 'webp');
+        if (in_array($fileExtension, $allowedfileExtensions)) {
+            $uploadFileDir = '../assets/images/productos/';
+            if (!is_dir($uploadFileDir)) {
+                mkdir($uploadFileDir, 0755, true);
+            }
+
+            // Nombre del archivo: slug-p.extensión
+            $newFileName = $slug . '-p.' . $fileExtension;
+            $dest_path = $uploadFileDir . $newFileName;
+
+            if (move_uploaded_file($fileTmpPath, $dest_path)) {
+                $imagen = '/assets/images/productos/' . $newFileName;
+            } else {
+                $error = "Hubo un error al mover el archivo al directorio de destino.";
+            }
+        } else {
+            $error = "Extensión de archivo no permitida. Solo JPG, PNG, GIF y WEBP.";
+        }
+    }
+
     if (empty($titulo) || $precio <= 0 || empty($sku)) {
         $error = "Por favor, completa los campos obligatorios: Título, Precio y SKU.";
     } else {
@@ -145,6 +175,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .header h2 {
@@ -152,27 +185,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 1.25rem;
         }
 
-        .header a {
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-menu a {
             color: white;
             text-decoration: none;
             padding: 0.4rem 0.8rem;
-            background: #6c757d;
+            background: transparent;
+            border: 1px solid white;
             border-radius: 4px;
             font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .nav-menu a.logout {
+            background: #dc3545;
+            border-color: #dc3545;
+            margin-left: 0.5rem;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-menu a.logout:hover {
+            background: #c82333;
         }
 
         .container {
-            padding: 2rem;
+            padding: 1.5rem;
             max-width: 800px;
             margin: 0 auto;
             background: white;
-            margin-top: 2rem;
+            margin-top: 1rem;
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
         }
 
         .form-group label {
@@ -183,27 +248,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .form-control {
             width: 100%;
-            padding: 0.5rem;
+            padding: 0.6rem;
             border: 1px solid #ced4da;
             border-radius: 4px;
             box-sizing: border-box;
             font-family: inherit;
+            font-size: 1rem;
         }
 
         textarea.form-control {
             resize: vertical;
-            min-height: 100px;
+            min-height: 120px;
         }
 
         .btn {
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1.25rem;
             border-radius: 4px;
             text-decoration: none;
             color: white;
-            font-size: 0.9rem;
+            font-size: 1rem;
             border: none;
             cursor: pointer;
             display: inline-block;
+            text-align: center;
         }
 
         .btn-primary {
@@ -244,19 +311,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .flex-col {
             flex: 1;
         }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 0.8rem 1rem;
+            }
+
+            .nav-toggle {
+                display: block;
+            }
+
+            .nav-menu {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #212529;
+                padding: 1rem;
+                border-top: 1px solid #343a40;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            .nav-menu.active {
+                display: flex;
+            }
+
+            .nav-menu a {
+                width: 100%;
+                box-sizing: border-box;
+                text-align: center;
+                margin: 0.25rem 0 !important;
+            }
+
+            .container {
+                padding: 1rem;
+                margin-top: 0;
+                border-radius: 0;
+            }
+
+            .flex-row {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div class="header">
         <h2>Bodega Juan XXIII - Admin</h2>
-        <div>
-            <a href="index.php" style="background: transparent; border: 1px solid white;">Productos</a>
-            <a href="configuracion.php"
-                style="background: transparent; border: 1px solid white; margin-left: 0.5rem;">Configuración</a>
-            <a href="cambiar_password.php"
-                style="background: transparent; border: 1px solid white; margin-left: 0.5rem;">Cambiar Contraseña</a>
-            <a href="index.php?logout=1" style="margin-left: 1rem; background: #dc3545; border: none;">Cerrar Sesión</a>
+        <button class="nav-toggle" id="navToggle">☰</button>
+        <div class="nav-menu" id="navMenu">
+            <a href="index.php">Productos</a>
+            <a href="configuracion.php">Configuración</a>
+            <a href="cambiar_password.php">Cambiar Contraseña</a>
+            <a href="index.php?logout=1" class="logout">Cerrar Sesión</a>
         </div>
     </div>
     <div class="container">
@@ -275,7 +391,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         <?php endif; ?>
 
-        <form method="POST" action="producto.php<?php echo $id > 0 ? '?id=' . $id : ''; ?>">
+        <form method="POST" action="producto.php<?php echo $id > 0 ? '?id=' . $id : ''; ?>"
+            enctype="multipart/form-data">
             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
             <div class="form-group">
@@ -313,7 +430,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         value="<?php echo htmlspecialchars($producto['precio']); ?>" required>
                 </div>
                 <div class="form-group flex-col">
-                    <label>Precio Anterior ($) (Opcional, para tachado)</label>
+                    <label>Precio Anterior ($) (Opcional)</label>
                     <input type="number" step="0.01" name="precio_anterior" class="form-control"
                         value="<?php echo htmlspecialchars($producto['precio_anterior'] ?? ''); ?>">
                 </div>
@@ -324,13 +441,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>URL de la Imagen</label>
-                <input type="text" name="imagen_principal" class="form-control"
-                    placeholder="/assets/images/productos/tu-imagen.jpg"
-                    value="<?php echo htmlspecialchars($producto['imagen_principal']); ?>">
-                <small style="color: #6c757d;">Para una mejor carga, sube la imagen a /assets/images/productos/ y
-                    escribe la ruta aquí.</small>
+            <div class="form-group" style="background: #f1f3f5; padding: 1rem; border-radius: 8px;">
+                <label style="margin-bottom: 1rem; color: #495057;">Imagen del Producto</label>
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="font-size: 0.85rem; color: #6c757d;">Cargar desde dispositivo (Foto o Galería)</label>
+                    <input type="file" name="imagen_archivo" class="form-control" accept="image/*" capture="environment"
+                        style="background: white;">
+                </div>
+
+                <div>
+                    <label style="font-size: 0.85rem; color: #6c757d;">O ingresar URL de imagen actual</label>
+                    <input type="text" name="imagen_principal" class="form-control"
+                        placeholder="/assets/images/productos/tu-imagen.jpg"
+                        value="<?php echo htmlspecialchars($producto['imagen_principal']); ?>"
+                        style="background: white;">
+                </div>
+
+                <?php if ($producto['imagen_principal']): ?>
+                    <div
+                        style="margin-top: 1rem; border-top: 1px solid #dee2e6; padding-top: 1rem; display: flex; align-items: center; gap: 1rem;">
+                        <img src="<?php echo htmlspecialchars($producto['imagen_principal']); ?>" alt="Vista previa"
+                            style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">
+                        <span style="font-size: 0.8rem; color: #6c757d;">Imagen actual</span>
+                    </div>
+                <?php endif; ?>
             </div>
 
             <div class="form-group">
@@ -339,17 +474,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     class="form-control"><?php echo htmlspecialchars($producto['descripcion']); ?></textarea>
             </div>
 
-            <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
-                <input type="checkbox" name="activo" id="activo" value="1" <?php echo $producto['activo'] ? 'checked' : ''; ?>>
+            <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+                <input type="checkbox" name="activo" id="activo" value="1" <?php echo $producto['activo'] ? 'checked' : ''; ?> style="width: 20px; height: 20px;">
                 <label for="activo" style="margin: 0; cursor: pointer;">Producto Activo (Visible en la tienda)</label>
             </div>
 
-            <div style="margin-top: 2rem;">
-                <button type="submit" class="btn btn-primary">Guardar Producto</button>
-                <a href="index.php" class="btn btn-secondary">Cancelar</a>
+            <div
+                style="margin-top: 2rem; border-top: 1px solid #dee2e6; padding-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button type="submit" class="btn btn-primary" style="flex: 2; min-width: 200px;">Guardar
+                    Producto</button>
+                <a href="index.php" class="btn btn-secondary" style="flex: 1; min-width: 120px;">Cancelar</a>
             </div>
         </form>
     </div>
+
+    <script>
+        document.getElementById('navToggle').addEventListener('click', function () {
+            document.getElementById('navMenu').classList.toggle('active');
+        });
+    </script>
 </body>
 
 </html>

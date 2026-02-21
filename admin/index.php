@@ -49,6 +49,9 @@ if (isset($_GET['logout'])) {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .header h2 {
@@ -56,22 +59,49 @@ if (isset($_GET['logout'])) {
             font-size: 1.25rem;
         }
 
-        .header a {
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-menu a {
             color: white;
             text-decoration: none;
             padding: 0.4rem 0.8rem;
-            background: #dc3545;
+            background: transparent;
+            border: 1px solid white;
             border-radius: 4px;
             font-size: 0.9rem;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
 
-        .header a:hover {
+        .nav-menu a.logout {
+            background: #dc3545;
+            border-color: #dc3545;
+            margin-left: 0.5rem;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-menu a.logout:hover {
             background: #c82333;
         }
 
         .container {
-            padding: 2rem;
+            padding: 1rem;
             max-width: 1200px;
             margin: 0 auto;
         }
@@ -81,6 +111,8 @@ if (isset($_GET['logout'])) {
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .toolbar h3 {
@@ -107,13 +139,21 @@ if (isset($_GET['logout'])) {
             background: #0b5ed7;
         }
 
-        table {
+        /* Scroll Interno para la tabla */
+        .table-responsive {
             width: 100%;
-            border-collapse: collapse;
+            overflow-x: auto;
             background: white;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
-            overflow: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+            /* Asegura que la tabla no se colapse demasiado */
         }
 
         th,
@@ -128,6 +168,8 @@ if (isset($_GET['logout'])) {
             font-weight: 600;
             color: #495057;
             border-bottom: 2px solid #dee2e6;
+            position: sticky;
+            top: 0;
         }
 
         tr:hover {
@@ -150,19 +192,61 @@ if (isset($_GET['logout'])) {
             background: #f8d7da;
             color: #842029;
         }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 0.8rem 1rem;
+            }
+
+            .nav-toggle {
+                display: block;
+            }
+
+            .nav-menu {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #212529;
+                padding: 1rem;
+                border-top: 1px solid #343a40;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            .nav-menu.active {
+                display: flex;
+            }
+
+            .nav-menu a {
+                width: 100%;
+                box-sizing: border-box;
+                text-align: center;
+                margin: 0.25rem 0 !important;
+            }
+
+            .toolbar h3 {
+                width: 100%;
+            }
+
+            .toolbar a {
+                width: 100%;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div class="header">
         <h2>Bodega Juan XXIII - Admin</h2>
-        <div>
-            <a href="index.php" style="background: transparent; border: 1px solid white;">Productos</a>
-            <a href="configuracion.php"
-                style="background: transparent; border: 1px solid white; margin-left: 0.5rem;">Configuración</a>
-            <a href="cambiar_password.php"
-                style="background: transparent; border: 1px solid white; margin-left: 0.5rem;">Cambiar Contraseña</a>
-            <a href="?logout=1" style="margin-left: 1rem;">Cerrar Sesión</a>
+        <button class="nav-toggle" id="navToggle">☰</button>
+        <div class="nav-menu" id="navMenu">
+            <a href="index.php">Productos</a>
+            <a href="configuracion.php">Configuración</a>
+            <a href="cambiar_password.php">Cambiar Contraseña</a>
+            <a href="?logout=1" class="logout">Cerrar Sesión</a>
         </div>
     </div>
     <div class="container">
@@ -177,66 +261,76 @@ if (isset($_GET['logout'])) {
             </div>
         <?php endif; ?>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Producto</th>
-                    <th>Categoría</th>
-                    <th>Precio</th>
-                    <th>Stock</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($productos as $p): ?>
+        <div class="table-responsive">
+            <table>
+                <thead>
                     <tr>
-                        <td>
-                            <?php echo $p['id']; ?>
-                        </td>
-                        <td>
-                            <div style="font-weight: 500;">
-                                <?php echo htmlspecialchars($p['titulo']); ?>
-                            </div>
-                            <div style="font-size: 0.8rem; color: #6c757d;">SKU:
-                                <?php echo htmlspecialchars($p['sku']); ?>
-                            </div>
-                        </td>
-                        <td><span style="text-transform: capitalize;">
-                                <?php echo htmlspecialchars($p['categoria']); ?>
-                            </span></td>
-                        <td>$
-                            <?php echo number_format($p['precio'], 2); ?>
-                        </td>
-                        <td>
-                            <?php echo $p['stock']; ?>
-                        </td>
-                        <td>
-                            <?php if ($p['activo']): ?>
-                                <span class="badge badge-success">Activo</span>
-                            <?php else: ?>
-                                <span class="badge badge-danger">Inactivo</span>
-                            <?php endif; ?>
-                        </td>
-                        <td>
-                            <a href="producto.php?id=<?php echo $p['id']; ?>"
-                                style="color: #0d6efd; text-decoration: none; font-size: 0.9rem; margin-right: 0.5rem;">Editar</a>
-                            <a href="eliminar_producto.php?id=<?php echo $p['id']; ?>&csrf_token=<?php echo $csrf_token; ?>"
-                                style="color: #dc3545; text-decoration: none; font-size: 0.9rem;"
-                                onclick="return confirm('¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.');">Borrar</a>
-                        </td>
+                        <th>ID</th>
+                        <th>Producto</th>
+                        <th>Categoría</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
-                <?php endforeach; ?>
-                <?php if (count($productos) === 0): ?>
-                    <tr>
-                        <td colspan="7" style="text-align: center; color: #6c757d; padding: 2rem;">No hay productos
-                            registrados.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php foreach ($productos as $p): ?>
+                        <tr>
+                            <td>
+                                <?php echo $p['id']; ?>
+                            </td>
+                            <td>
+                                <div style="font-weight: 500;">
+                                    <?php echo htmlspecialchars($p['titulo']); ?>
+                                </div>
+                                <div style="font-size: 0.8rem; color: #6c757d;">SKU:
+                                    <?php echo htmlspecialchars($p['sku']); ?>
+                                </div>
+                            </td>
+                            <td><span style="text-transform: capitalize;">
+                                    <?php echo htmlspecialchars($p['categoria']); ?>
+                                </span></td>
+                            <td>$
+                                <?php echo number_format($p['precio'], 2); ?>
+                            </td>
+                            <td>
+                                <?php echo $p['stock']; ?>
+                            </td>
+                            <td>
+                                <?php if ($p['activo']): ?>
+                                    <span class="badge badge-success">Activo</span>
+                                <?php else: ?>
+                                    <span class="badge badge-danger">Inactivo</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <a href="producto.php?id=<?php echo $p['id']; ?>"
+                                        style="color: #0d6efd; text-decoration: none; font-size: 0.9rem;">Editar</a>
+                                    <a href="eliminar_producto.php?id=<?php echo $p['id']; ?>&csrf_token=<?php echo $csrf_token; ?>"
+                                        style="color: #dc3545; text-decoration: none; font-size: 0.9rem;"
+                                        onclick="return confirm('¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.');">Borrar</a>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    <?php if (count($productos) === 0): ?>
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: #6c757d; padding: 2rem;">No hay productos
+                                registrados.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
+
+    <script>
+        document.getElementById('navToggle').addEventListener('click', function () {
+            document.getElementById('navMenu').classList.toggle('active');
+        });
+    </script>
 </body>
 
 </html>

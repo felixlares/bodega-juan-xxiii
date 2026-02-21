@@ -94,6 +94,9 @@ $redes = json_decode($config['redes_sociales'], true) ?: ['facebook' => '', 'ins
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .header h2 {
@@ -101,31 +104,59 @@ $redes = json_decode($config['redes_sociales'], true) ?: ['facebook' => '', 'ins
             font-size: 1.25rem;
         }
 
-        .header a {
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-menu a {
             color: white;
             text-decoration: none;
             padding: 0.4rem 0.8rem;
+            background: transparent;
+            border: 1px solid white;
             border-radius: 4px;
             font-size: 0.9rem;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
 
-        .header a:hover {
-            background: rgba(255, 255, 255, 0.1) !important;
+        .nav-menu a.logout {
+            background: #dc3545;
+            border-color: #dc3545;
+            margin-left: 0.5rem;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-menu a.logout:hover {
+            background: #c82333;
         }
 
         .container {
-            padding: 2rem;
+            padding: 1.5rem;
             max-width: 800px;
             margin: 0 auto;
             background: white;
-            margin-top: 2rem;
+            margin-top: 1rem;
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
         }
 
         .form-group label {
@@ -136,22 +167,24 @@ $redes = json_decode($config['redes_sociales'], true) ?: ['facebook' => '', 'ins
 
         .form-control {
             width: 100%;
-            padding: 0.5rem;
+            padding: 0.6rem;
             border: 1px solid #ced4da;
             border-radius: 4px;
             box-sizing: border-box;
             font-family: inherit;
+            font-size: 1rem;
         }
 
         .btn {
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1.25rem;
             border-radius: 4px;
             text-decoration: none;
             color: white;
-            font-size: 0.9rem;
+            font-size: 1rem;
             border: none;
             cursor: pointer;
             display: inline-block;
+            text-align: center;
         }
 
         .btn-primary {
@@ -182,10 +215,11 @@ $redes = json_decode($config['redes_sociales'], true) ?: ['facebook' => '', 'ins
 
         .section-title {
             margin-top: 2rem;
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
             padding-bottom: 0.5rem;
             border-bottom: 1px solid #dee2e6;
             color: #495057;
+            font-size: 1.1rem;
         }
 
         .flex-row {
@@ -196,19 +230,67 @@ $redes = json_decode($config['redes_sociales'], true) ?: ['facebook' => '', 'ins
         .flex-col {
             flex: 1;
         }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 0.8rem 1rem;
+            }
+
+            .nav-toggle {
+                display: block;
+            }
+
+            .nav-menu {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #212529;
+                padding: 1rem;
+                border-top: 1px solid #343a40;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            .nav-menu.active {
+                display: flex;
+            }
+
+            .nav-menu a {
+                width: 100%;
+                box-sizing: border-box;
+                text-align: center;
+                margin: 0.25rem 0 !important;
+            }
+
+            .container {
+                padding: 1rem;
+                margin-top: 0;
+                border-radius: 0;
+            }
+
+            .flex-row {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div class="header">
         <h2>Bodega Juan XXIII - Admin</h2>
-        <div>
-            <a href="index.php" style="background: transparent; border: 1px solid white;">Productos</a>
-            <a href="configuracion.php"
-                style="background: transparent; border: 1px solid white; margin-left: 0.5rem;">Configuración</a>
-            <a href="cambiar_password.php"
-                style="background: transparent; border: 1px solid white; margin-left: 0.5rem;">Cambiar Contraseña</a>
-            <a href="index.php?logout=1" style="margin-left: 1rem; background: #dc3545; border: none;">Cerrar Sesión</a>
+        <button class="nav-toggle" id="navToggle">☰</button>
+        <div class="nav-menu" id="navMenu">
+            <a href="index.php">Productos</a>
+            <a href="configuracion.php">Configuración</a>
+            <a href="cambiar_password.php">Cambiar Contraseña</a>
+            <a href="index.php?logout=1" class="logout">Cerrar Sesión</a>
         </div>
     </div>
     <div class="container">
@@ -288,11 +370,17 @@ $redes = json_decode($config['redes_sociales'], true) ?: ['facebook' => '', 'ins
                     value="<?php echo htmlspecialchars($redes['tiktok'] ?? ''); ?>">
             </div>
 
-            <div style="margin-top: 2rem;">
+            <div style="margin-top: 2rem; border-top: 1px solid #dee2e6; padding-top: 1.5rem;">
                 <button type="submit" class="btn btn-primary">Guardar Configuración</button>
             </div>
         </form>
     </div>
+
+    <script>
+        document.getElementById('navToggle').addEventListener('click', function () {
+            document.getElementById('navMenu').classList.toggle('active');
+        });
+    </script>
 </body>
 
 </html>
